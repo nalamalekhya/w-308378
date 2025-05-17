@@ -9,14 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useRouter } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -46,7 +46,7 @@ export function Login() {
       }
 
       toast.success("Successfully logged in!");
-      router.push("/dashboard");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
       setError("Invalid email or password. Please try again.");
@@ -120,7 +120,7 @@ export function Login() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push("/forgot-password")}
+              onClick={() => navigate("/forgot-password")}
             >
               Forgot password?
             </Button>

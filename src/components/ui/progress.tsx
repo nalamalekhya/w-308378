@@ -18,7 +18,7 @@ const ProgressBar = React.forwardRef<
   ProgressBarProps
 >(({ className, value = 0, min = 0, max = 100, showThumb = true, progressColor, trackColor, thumbColor, ...props }, ref) => {
   // Ratio between 0 and 1
-  const ratio = ((value - min) / ((max - min) || 1))
+  const ratio = ((value - min) / ((max - min) || 1));
   return (
     <div className={cn("relative w-full h-5 flex items-center", className)}>
       {/* Track (background) */}
@@ -62,12 +62,6 @@ const ProgressBar = React.forwardRef<
       {/* For accessibility & screen readers */}
       <ProgressPrimitive.Root
         ref={ref}
-        value={value}
-        min={min}
-        max={max}
-        aria-valuenow={value}
-        aria-valuemin={min}
-        aria-valuemax={max}
         className="sr-only"
         {...props}
       >
@@ -81,3 +75,4 @@ const ProgressBar = React.forwardRef<
 ProgressBar.displayName = "ProgressBar"
 
 export { ProgressBar }
+

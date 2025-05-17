@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -64,20 +63,20 @@ export default function SettingsPage() {
           setProfile(profileData);
           
           // Get user settings
-          const { data: settingsData, error: settingsError } = await supabase
-            .from('user_settings')
-            .select('*')
-            .eq('user_id', authUser.id)
-            .single();
+          // const { data: settingsData, error: settingsError } = await supabase
+          //   .from('user_settings')
+          //   .select('*')
+          //   .eq('user_id', authUser.id)
+          //   .single();
             
-          if (!settingsError && settingsData) {
-            // Update state with user settings
-            setTimeCapsuleEnabled(settingsData.time_capsule_enabled || false);
-            setEmailNotifications(settingsData.email_notifications || true);
-            setUnlockNotifications(settingsData.unlock_notifications || true);
-            setNotificationFrequency(settingsData.notification_frequency || "immediate");
-            setDarkMode(settingsData.dark_mode || false);
-          }
+          // if (!settingsError && settingsData) {
+          //   // Update state with user settings
+          //   setTimeCapsuleEnabled(settingsData.time_capsule_enabled || false);
+          //   setEmailNotifications(settingsData.email_notifications || true);
+          //   setUnlockNotifications(settingsData.unlock_notifications || true);
+          //   setNotificationFrequency(settingsData.notification_frequency || "immediate");
+          //   setDarkMode(settingsData.dark_mode || false);
+          // }
         }
       } catch (error) {
         console.error("Error loading user data:", error);
@@ -105,19 +104,19 @@ export default function SettingsPage() {
       }
       
       // Save settings to database
-      const { error } = await supabase
-        .from('user_settings')
-        .upsert({
-          user_id: user.id,
-          time_capsule_enabled: timeCapsuledEnabled,
-          email_notifications: emailNotifications,
-          unlock_notifications: unlockNotifications,
-          notification_frequency: notificationFrequency,
-          dark_mode: darkMode,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
+      // const { error } = await supabase
+      //   .from('user_settings')
+      //   .upsert({
+      //     user_id: user.id,
+      //     time_capsule_enabled: timeCapsuledEnabled,
+      //     email_notifications: emailNotifications,
+      //     unlock_notifications: unlockNotifications,
+      //     notification_frequency: notificationFrequency,
+      //     dark_mode: darkMode,
+      //     updated_at: new Date().toISOString()
+      //   }, { onConflict: 'user_id' });
       
-      if (error) throw error;
+      // if (error) throw error;
       
       toast({
         title: "Settings saved",
