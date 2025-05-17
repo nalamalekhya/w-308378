@@ -48,10 +48,7 @@ export default function AudioPlayerPage() {
     };
     const endedHandler = () => {
       setIsPlaying(false);
-      setCurrentTime(0);
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-      }
+      // DO NOT set currentTime to 0. Let users manually reset with the slider or play.
     };
     
     audio.addEventListener('timeupdate', updateProgressHandler);
@@ -188,11 +185,10 @@ export default function AudioPlayerPage() {
                     min={0}
                     max={duration || 165}
                     showThumb={true}
-                    progressColor="bg-echo-present"
-                    trackColor="bg-echo-accent/50"
+                    progressColor="bg-[#d5a9a8]"
+                    trackColor="bg-[#f5ecec]"
+                    thumbColor="bg-blue-500 border-echo-past"
                   />
-                  {/* (Slider input for seeking, visually hidden but accessible for screen readers.)
-                      You may keep or move input slider here, set display:none, but leave actual interactivity for now */}
                   <input
                     type="range"
                     min="0"
@@ -204,8 +200,8 @@ export default function AudioPlayerPage() {
                     aria-label="Seek audio"
                   />
                 </div>
-                <span className="text-sm">{echo.duration}</span>
-                <Button size="icon" variant="ghost" className="text-echo-present">
+                <span className="text-sm">{formatTime(duration)}</span>
+                <Button size="icon" variant="ghost" className="text-[#d5a9a8]">
                   <Volume2 className="h-4 w-4" />
                 </Button>
               </div>
