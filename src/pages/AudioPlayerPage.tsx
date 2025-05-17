@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -9,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Pause, Play, Volume2 } from "lucide-react";
 import { getMoodStyles, capitalize } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
+import { ProgressBar } from "@/components/ui/progress";
 
 export default function AudioPlayerPage() {
   const { id } = useParams();
@@ -182,19 +182,26 @@ export default function AudioPlayerPage() {
               
               <div className="flex items-center gap-2 mt-4">
                 <span className="text-sm">{formatTime(currentTime)}</span>
-                <div className="relative w-full">
+                <div className="relative w-full max-w-full px-2">
+                  <ProgressBar
+                    value={currentTime}
+                    min={0}
+                    max={duration || 165}
+                    showThumb={true}
+                    progressColor="bg-echo-present"
+                    trackColor="bg-echo-accent/50"
+                  />
+                  {/* (Slider input for seeking, visually hidden but accessible for screen readers.)
+                      You may keep or move input slider here, set display:none, but leave actual interactivity for now */}
                   <input
                     type="range"
                     min="0"
-                    max={duration || 165} // Fallback to 165 seconds (2:45) if duration not loaded yet
+                    max={duration || 165}
                     value={currentTime}
                     onChange={handleTimeUpdate}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    className="absolute top-0 left-0 w-full h-5 opacity-0 cursor-pointer"
                     step="0.1"
-                  />
-                  <div 
-                    className="absolute top-0 left-0 h-2 bg-echo-present rounded-lg pointer-events-none" 
-                    style={{ width: `${(currentTime / (duration || 165)) * 100}%` }}
+                    aria-label="Seek audio"
                   />
                 </div>
                 <span className="text-sm">{echo.duration}</span>
