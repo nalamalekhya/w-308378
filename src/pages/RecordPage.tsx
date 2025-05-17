@@ -54,11 +54,74 @@ export default function RecordPage() {
     },
   });
 
+  // Reset recording state when component mounts
+  useEffect(() => {
+    // Reset all recording-related state
+    setIsRecording(false);
+    setRecordingTime(0);
+    setAudioBlob(null);
+    setIsPlaying(false);
+    setIsSubmitting(false);
+    
+    // Reset audio element if it exists
+    if (audioRef.current) {
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+    
+    // Reset form with default values
+    form.reset({
+      title: "",
+      mood: "",
+      unlockDate: addMonths(new Date(), 1),
+    });
+    
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    // Clear any existing media recorder
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+    mediaRecorderRef.current = null;
+    audioChunksRef.current = [];
+    
+    // Check if browser supports audio recording
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast.error("Your browser doesn't support audio recording");
+      return;
+    }
+  }, [form]);
+
   // Check for microphone permission
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(() => setRecordingPermission(true))
-      .catch(() => setRecordingPermission(false));
+    const checkMicrophonePermission = async () => {
+      try {
+        // First check if permission is already granted
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasMicrophone = devices.some(device => device.kind === 'audioinput');
+        
+        if (hasMicrophone) {
+          // Try to get access to the microphone
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          // If successful, set permission to true
+          setRecordingPermission(true);
+          // Release the stream immediately since we're just checking permission
+          stream.getTracks().forEach(track => track.stop());
+        } else {
+          setRecordingPermission(false);
+        }
+      } catch (error) {
+        console.error('Error checking microphone permission:', error);
+        setRecordingPermission(false);
+      }
+    };
+    
+    checkMicrophonePermission();
   }, []);
 
   // Handle recording timer
@@ -84,18 +147,33 @@ export default function RecordPage() {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Request microphone permission when the user clicks the record button
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: { 
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
+      setRecordingPermission(true);
       
-      const mediaRecorder = new MediaRecorder(stream);
+      // Create a new MediaRecorder with better audio quality
+      const options = { mimeType: 'audio/webm' };
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
       
+      // Set up data collection
       mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
       
+      // Handle recording completion
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        // Create audio blob from collected chunks
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setAudioBlob(audioBlob);
         
         // Create audio element for playback
@@ -104,13 +182,26 @@ export default function RecordPage() {
           audioRef.current.src = audioUrl;
         } else {
           const audio = new Audio(audioUrl);
+          audio.addEventListener('ended', () => setIsPlaying(false));
           audioRef.current = audio;
         }
+        
+        // Suggest a title based on the current date
+        const now = new Date();
+        const suggestedTitle = `Echo from ${format(now, 'MMMM d')}`;
+        form.setValue('title', suggestedTitle);
+        
+        // Show a toast to guide the user
+        toast.success("Recording complete! Now tell us how you're feeling.");
       };
       
-      mediaRecorder.start();
+      // Start recording with 10ms timeslice for more frequent ondataavailable events
+      mediaRecorder.start(10);
       setIsRecording(true);
       setRecordingTime(0);
+      
+      // Show a toast to indicate recording has started
+      toast.info("Recording started! Click the stop button when you're finished.");
       
     } catch (error) {
       console.error("Error starting recording:", error);
@@ -121,12 +212,17 @@ export default function RecordPage() {
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      
-      // Stop all audio tracks
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-      
-      setIsRecording(false);
+      try {
+        mediaRecorderRef.current.stop();
+        
+        // Stop all audio tracks
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        
+        setIsRecording(false);
+      } catch (error) {
+        console.error("Error stopping recording:", error);
+        toast.error("There was a problem stopping the recording.");
+      }
     }
   };
 
@@ -234,7 +330,7 @@ export default function RecordPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-echo text-white py-6 px-4 md:px-12">
+      <header className="bg-gradient-to-r from-steel-primary to-steel-secondary text-white py-6 px-4 md:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -254,20 +350,6 @@ export default function RecordPage() {
 
       <main className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex flex-col items-center">
-          {recordingPermission === false ? (
-            <div className="text-center py-8">
-              <div className="h-24 w-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                <MicOff className="h-12 w-12 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-medium mb-4">Microphone Access Required</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Please allow microphone access in your browser settings to record your echo.
-              </p>
-              <Button onClick={() => window.location.reload()}>
-                Try Again
-              </Button>
-            </div>
-          ) : (
             <>
               {/* Recording Interface */}
               <div className="w-full max-w-md mb-8">
@@ -300,7 +382,7 @@ export default function RecordPage() {
                             variant="outline"
                             className={cn(
                               "h-16 w-16 rounded-full",
-                              isPlaying ? "bg-muted text-foreground" : "bg-echo-present text-white hover:bg-echo-past"
+                              isPlaying ? "bg-muted text-foreground" : "bg-steel-primary text-white hover:bg-steel-secondary"
                             )}
                           >
                             {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
@@ -327,7 +409,7 @@ export default function RecordPage() {
                             "h-16 w-16 rounded-full flex items-center justify-center",
                             isRecording 
                               ? "bg-destructive hover:bg-destructive/90" 
-                              : "bg-echo-present hover:bg-echo-past"
+                              : "bg-dusty-rose hover:bg-dusty-rose/90"
                           )}
                         >
                           {isRecording ? (
@@ -348,9 +430,9 @@ export default function RecordPage() {
                 </div>
               </div>
 
-              {/* Entry Details Form */}
+              {/* Entry Details Form - Show with animation when recording is complete */}
               {audioBlob && !isRecording && (
-                <div className="w-full max-w-md bg-card rounded-lg shadow-sm p-6">
+                <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 animate-fadeIn">
                   <h3 className="text-lg font-medium mb-4">Echo Details</h3>
                   
                   <Form {...form}>
@@ -487,7 +569,6 @@ export default function RecordPage() {
                 </div>
               )}
             </>
-          )}
         </div>
       </main>
     </div>

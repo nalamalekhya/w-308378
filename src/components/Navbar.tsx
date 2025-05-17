@@ -35,6 +35,32 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState<{id: string, title: string}[]>([]);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { toast } = useToast();
+  const [userInitials, setUserInitials] = useState('');
+  
+  // Get user initials from profile
+  useEffect(() => {
+    const fetchUserInitials = async () => {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) return;
+        
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('first_name')
+          .eq('id', userData.user.id)
+          .single();
+          
+        if (profileData && profileData.first_name) {
+          const initials = profileData.first_name.charAt(0).toUpperCase();
+          setUserInitials(initials);
+        }
+      } catch (error) {
+        console.error('Error fetching user initials:', error);
+      }
+    };
+    
+    fetchUserInitials();
+  }, []);
   
   // Check for notifications (newly unlocked echoes)
   useEffect(() => {
@@ -127,7 +153,7 @@ export default function Navbar() {
   };
   
   return (
-    <header className="bg-gradient-to-r from-echo-past via-echo-present to-echo-future dark:text-white text-primary-foreground sticky top-0 z-50 shadow-md py-4 px-4 md:px-8">
+    <header className="bg-gradient-to-r from-echo-past via-echo-present to-echo-future dark:text-white text-black sticky top-0 z-50 shadow-md py-4 px-4 md:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -144,7 +170,7 @@ export default function Navbar() {
                 <NavigationMenuItem>
                   <Link to="/dashboard">
                     <NavigationMenuLink 
-                      className={`${navigationMenuTriggerStyle()} font-medium ${isActive("/dashboard") ? "bg-primary/25 text-primary-foreground" : "bg-white/20 text-white font-semibold border border-white/30 hover:bg-white/30 hover:border-white/50"}`}
+                      className={`${navigationMenuTriggerStyle()} font-medium ${isActive("/dashboard") ? "bg-primary/25 text-black" : "bg-white/20 text-black font-semibold border border-white/30 hover:bg-white/30 hover:border-white/50"}`}
                     >
                       Dashboard
                     </NavigationMenuLink>
@@ -153,7 +179,7 @@ export default function Navbar() {
                 <NavigationMenuItem>
                   <Link to="/timeline">
                     <NavigationMenuLink 
-                      className={`${navigationMenuTriggerStyle()} font-medium ${isActive("/timeline") ? "bg-primary/25 text-primary-foreground" : "bg-white/20 text-white font-semibold border border-white/30 hover:bg-white/30 hover:border-white/50"}`}
+                      className={`${navigationMenuTriggerStyle()} font-medium ${isActive("/timeline") ? "bg-primary/25 text-black" : "bg-white/20 text-black font-semibold border border-white/30 hover:bg-white/30 hover:border-white/50"}`}
                     >
                       Timeline
                     </NavigationMenuLink>
@@ -162,7 +188,7 @@ export default function Navbar() {
                 <NavigationMenuItem>
                   <Link to="/record">
                     <NavigationMenuLink 
-                      className={`${navigationMenuTriggerStyle()} font-medium ${isActive("/record") ? "bg-primary/25 text-primary-foreground" : "bg-white/20 text-white font-semibold border border-white/30 hover:bg-white/30 hover:border-white/50"}`}
+                      className={`${navigationMenuTriggerStyle()} font-medium ${isActive("/record") ? "bg-primary/25 text-black" : "bg-white/20 text-black font-semibold border border-white/30 hover:bg-white/30 hover:border-white/50"}`}
                     >
                       Record
                     </NavigationMenuLink>
@@ -217,10 +243,10 @@ export default function Navbar() {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="hover:bg-white/10 px-2">
+                  <Button variant="ghost" className="text-primary hover:bg-primary/10 px-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src="/placeholder.svg" alt="User" />
-                      <AvatarFallback>JD</AvatarFallback>
+                      <AvatarFallback className="mr-2 h-4 w-4 text-black">{userInitials}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>

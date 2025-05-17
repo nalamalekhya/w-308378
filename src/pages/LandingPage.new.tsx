@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Calendar, Clock, Mic, Play, MessageCircle } from "lucide-react";
+import { ArrowRight, Calendar, Clock, Mic, Play, MessageCircle, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
@@ -9,9 +9,33 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Using a placeholder image URL instead of local import
-const MAIN_HERO_IMAGE = "https://images.unsplash.com/photo-1581368135153-a506cf13531c?q=80&w=1470&auto=format&fit=crop";
+const MAIN_HERO_IMAGE = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
 
 export default function LandingPage() {
+  const [typedText, setTypedText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+  const fullText = "future self";
+  
+  useEffect(() => {
+    if (isTyping) {
+      const textLength = typedText.length;
+      if (textLength < fullText.length) {
+        const timeout = setTimeout(() => {
+          setTypedText(fullText.substring(0, textLength + 1));
+        }, 150); // Adjust typing speed here
+        return () => clearTimeout(timeout);
+      } else {
+        // Start blinking cursor effect when typing is complete
+        setIsTyping(false);
+        // Restart typing animation after a pause
+        const restartTimeout = setTimeout(() => {
+          setTypedText("");
+          setIsTyping(true);
+        }, 3000); // Pause before restarting
+        return () => clearTimeout(restartTimeout);
+      }
+    }
+  }, [typedText, isTyping]);
   return (
     <div className="min-h-screen bg-background">
       {/* Enhanced Navbar with improved contrast and accessibility */}
@@ -28,46 +52,18 @@ export default function LandingPage() {
           </div>
           
           <nav className="hidden md:flex items-center gap-6">
-            <div className="relative group">
-              <button 
-                className="text-sm font-medium text-foreground transition-colors hover:text-primary flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1 rounded-md px-2 py-1" 
-                aria-expanded="false"
-                aria-haspopup="true"
-              >
-                Features
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div className="absolute left-0 top-full mt-2 w-64 p-2 bg-card rounded-md shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <div className="p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
-                  <div className="font-medium text-foreground">🎙️ Voice Recording</div>
-                  <div className="text-xs text-foreground-muted">Capture audio messages with mood tags</div>
-                </div>
-                <div className="p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
-                  <div className="font-medium text-foreground">🔒 Future Locking</div>
-                  <div className="text-xs text-foreground-muted">Set unlock dates for your messages</div>
-                </div>
-                <div className="p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
-                  <div className="font-medium text-foreground">📅 Timeline View</div>
-                  <div className="text-xs text-foreground-muted">Chronological list of all entries</div>
-                </div>
-                <div className="p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
-                  <div className="font-medium text-foreground">🔔 Unlock Notifications</div>
-                  <div className="text-xs text-foreground-muted">Get notified when entries unlock</div>
-                </div>
-              </div>
-            </div>
-            <Link 
-              to="/how-it-works" 
+            <a 
+              href="#how-it-works" 
               className="text-sm font-medium text-foreground transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1 rounded-md px-2 py-1"
             >
               How It Works
-            </Link>
-            <Link 
-              to="/testimonials" 
+            </a>
+            <a 
+              href="#testimonials" 
               className="text-sm font-medium text-foreground transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1 rounded-md px-2 py-1"
             >
               Testimonials
-            </Link>
+            </a>
           </nav>
           
           <div className="flex items-center gap-3">
@@ -109,7 +105,16 @@ export default function LandingPage() {
               </div>
               
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
-                Send messages to your <span className="text-primary">future self</span>
+                Send messages to your{" "}
+                <span className="inline-flex items-center text-primary">
+                  <span className="relative">
+                    {typedText}
+                    <span 
+                      className={`absolute right-[-4px] top-0 h-full w-[2px] bg-primary ${isTyping ? "animate-none" : "animate-blink"}`}
+                      style={{ animationDuration: "0.8s" }}
+                    ></span>
+                  </span>
+                </span>
               </h1>
               
               <p className="text-lg md:text-xl text-foreground-muted max-w-xl">
@@ -161,9 +166,9 @@ export default function LandingPage() {
               
               <div className="relative z-10 rounded-xl overflow-hidden border border-border shadow-xl">
                 <img 
-                  src={MAIN_HERO_IMAGE} 
-                  alt="EchoVoice App Interface" 
-                  className="w-full h-auto object-cover rounded-xl" 
+                  src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80" 
+                  alt="Beautiful mountain landscape" 
+                  className="w-full h-[400px] object-cover rounded-xl" 
                   loading="eager"
                 />
                 
@@ -185,7 +190,7 @@ export default function LandingPage() {
       </section>
 
       {/* Enhanced Features Section with improved contrast and accessibility */}
-      <section className="py-20 md:py-28 px-4 md:px-8 lg:px-12 bg-background-secondary border-y border-border">
+      <section id="how-it-works" className="py-20 md:py-28 px-4 md:px-8 lg:px-12 bg-background-secondary border-y border-border">
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
@@ -268,22 +273,27 @@ export default function LandingPage() {
           
           <div className="mt-16 text-center">
             <Button 
-              asChild 
               variant="outline" 
               size="lg" 
               className="border-primary/20 bg-background text-primary hover:bg-primary/5 transition-colors"
+              onClick={() => {
+                const howItWorksSection = document.getElementById('how-it-works');
+                if (howItWorksSection) {
+                  howItWorksSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
             >
-              <Link to="/features" className="flex items-center gap-2">
-                <span>Learn more about our features</span>
+              <span className="flex items-center gap-2">
+                Learn more about our features
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </span>
             </Button>
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 md:py-28 px-4 md:px-8 lg:px-12 bg-background">
+      <section id="testimonials" className="py-20 md:py-28 px-4 md:px-8 lg:px-12 bg-background">
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
@@ -416,18 +426,30 @@ export default function LandingPage() {
               <p className="text-foreground-muted">Send messages to your future self</p>
             </div>
             <div className="flex gap-8">
-              <Link to="/about" className="text-foreground hover:text-primary transition-colors">
+              <button 
+                onClick={() => alert('About EchoVoice: A voice time capsule app that allows you to send messages to your future self.')}
+                className="text-foreground hover:text-primary transition-colors bg-transparent border-none cursor-pointer font-inherit"
+              >
                 About
-              </Link>
-              <Link to="/privacy" className="text-foreground hover:text-primary transition-colors">
+              </button>
+              <button 
+                onClick={() => alert('Privacy Policy: EchoVoice respects your privacy and protects your personal data. We only collect information necessary to provide our services.')}
+                className="text-foreground hover:text-primary transition-colors bg-transparent border-none cursor-pointer font-inherit"
+              >
                 Privacy
-              </Link>
-              <Link to="/terms" className="text-foreground hover:text-primary transition-colors">
+              </button>
+              <button 
+                onClick={() => alert('Terms of Service: By using EchoVoice, you agree to our terms of service. Please use the platform responsibly.')}
+                className="text-foreground hover:text-primary transition-colors bg-transparent border-none cursor-pointer font-inherit"
+              >
                 Terms
-              </Link>
-              <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
+              </button>
+              <button 
+                onClick={() => alert('Contact Us: For support or inquiries, please email us at support@echovoice.com')}
+                className="text-foreground hover:text-primary transition-colors bg-transparent border-none cursor-pointer font-inherit"
+              >
                 Contact
-              </Link>
+              </button>
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-border text-center text-foreground-muted">

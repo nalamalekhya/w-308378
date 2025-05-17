@@ -5,8 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import LandingPage from "./pages/LandingPage";
+import LandingPage from "./pages/LandingPage.new";
 import AuthPage from "./pages/AuthPage";
+import SignupPage from "./pages/SignupPage";
 import WelcomePage from "./pages/WelcomePage";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -26,7 +27,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<AuthPage />} />
-            <Route path="/signup" element={<AuthPage />} />
+            <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<AuthPage />} />
             <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/dashboard" element={<Dashboard />} />

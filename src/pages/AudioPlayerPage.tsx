@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,11 @@ export default function AudioPlayerPage() {
   const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [reflection, setReflection] = useState("");
+  
+  // Reference to the audio element
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Mock echo data - in a real app, fetch from a database
   const echo = {
@@ -26,19 +30,86 @@ export default function AudioPlayerPage() {
     duration: "2:45",
     mood: "motivated",
     isLocked: false,
-    audioSrc: "/mock-audio.mp3", // This would be a real audio file path in production
+    // Using a sample audio file from a CDN for testing
+    audioSrc: "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg",
   };
   
-  const totalDuration = 165; // 2:45 in seconds
+  // Create audio element on component mount
+  useEffect(() => {
+    // Create audio element
+    const audio = new Audio(echo.audioSrc);
+    audioRef.current = audio;
+    
+    // Set up event listeners
+    const updateProgressHandler = () => updateProgress();
+    const loadedMetadataHandler = () => {
+      setDuration(audio.duration);
+      console.log('Audio duration loaded:', audio.duration);
+    };
+    const endedHandler = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+      }
+    };
+    
+    audio.addEventListener('timeupdate', updateProgressHandler);
+    audio.addEventListener('loadedmetadata', loadedMetadataHandler);
+    audio.addEventListener('ended', endedHandler);
+    
+    // Preload the audio
+    audio.load();
+    
+    return () => {
+      // Clean up event listeners
+      audio.removeEventListener('timeupdate', updateProgressHandler);
+      audio.removeEventListener('loadedmetadata', loadedMetadataHandler);
+      audio.removeEventListener('ended', endedHandler);
+      audio.pause();
+    };
+  }, [echo.audioSrc]);
   
+  // Update progress function for timeupdate event
+  const updateProgress = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+      console.log('Current time updated:', audioRef.current.currentTime);
+    }
+  };
+
   const handlePlayPause = () => {
+    if (!audioRef.current) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      // Play the audio and handle any errors
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Audio playback started successfully');
+          })
+          .catch(error => {
+            console.error('Error playing audio:', error);
+            // Handle the error appropriately
+          });
+      }
+    }
+    
     setIsPlaying(!isPlaying);
-    // In a real implementation, would control audio playback here
   };
   
   const handleTimeUpdate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentTime(parseInt(e.target.value));
-    // In a real implementation, would seek audio to the time
+    const newTime = parseFloat(e.target.value);
+    setCurrentTime(newTime);
+    
+    // Update audio element time
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
+    }
   };
   
   const formatTime = (seconds: number) => {
@@ -111,14 +182,21 @@ export default function AudioPlayerPage() {
               
               <div className="flex items-center gap-2 mt-4">
                 <span className="text-sm">{formatTime(currentTime)}</span>
-                <input
-                  type="range"
-                  min="0"
-                  max={totalDuration}
-                  value={currentTime}
-                  onChange={handleTimeUpdate}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
+                <div className="relative w-full">
+                  <input
+                    type="range"
+                    min="0"
+                    max={duration || 165} // Fallback to 165 seconds (2:45) if duration not loaded yet
+                    value={currentTime}
+                    onChange={handleTimeUpdate}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    step="0.1"
+                  />
+                  <div 
+                    className="absolute top-0 left-0 h-2 bg-echo-present rounded-lg pointer-events-none" 
+                    style={{ width: `${(currentTime / (duration || 165)) * 100}%` }}
+                  />
+                </div>
                 <span className="text-sm">{echo.duration}</span>
                 <Button size="icon" variant="ghost" className="text-echo-present">
                   <Volume2 className="h-4 w-4" />

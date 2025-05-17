@@ -1,34 +1,16 @@
-
-import React, { useState, useEffect } from "react";
-import { WaveformAnimation } from "@/components/ui/waveform-animation";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WaveformAnimation } from "@/components/ui/waveform-animation";
 import Index from "@/components/ui/travel-connect-signin-1";
 
-type FormMode = "login" | "signup" | "forgot-password";
-
-export default function AuthPage() {
+export default function LoginPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Check if user is already logged in
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        navigate('/dashboard');
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Enhanced header with better contrast */}
+      {/* Header with back button */}
       <header className="w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
@@ -48,7 +30,7 @@ export default function AuthPage() {
           </Button>
         </div>
       </header>
-      
+
       {/* Modern login component */}
       <div className="flex-1">
         <Index />

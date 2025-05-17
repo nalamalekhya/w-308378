@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Edit, User } from "lucide-react";
+import { Edit, User, Mic, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
@@ -109,12 +109,38 @@ export default function ProfilePage() {
       description: "Password update functionality will be implemented soon"
     });
   };
+
+  const handleCreateEcho = () => {
+    navigate('/record');
+  };
+
+  const handleRecord = () => {
+    navigate('/record');
+  };
   
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       <main className="max-w-6xl mx-auto px-4 md:px-12 py-8">
+        {/* Action buttons for Record and New Echo */}
+        <div className="flex justify-end gap-4 mb-6">
+          <Button 
+            onClick={handleRecord} 
+            variant="outline"
+            className="flex items-center gap-2 border-echo-present text-echo-present hover:bg-echo-present/10"
+          >
+            <Mic className="h-4 w-4" />
+            Record
+          </Button>
+          <Button 
+            onClick={handleCreateEcho} 
+            className="flex items-center gap-2 bg-echo-present text-white hover:bg-echo-past"
+          >
+            <Plus className="h-4 w-4" />
+            New Echo
+          </Button>
+        </div>
         <div className="flex flex-col items-center justify-center mb-8">
           <h1 className="text-3xl font-bold mb-4">My Profile</h1>
           <p className="text-muted-foreground text-center max-w-md">
