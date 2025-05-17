@@ -43,8 +43,8 @@ export default function AudioPlayerPage() {
     // Set up event listeners
     const updateProgressHandler = () => updateProgress();
     const loadedMetadataHandler = () => {
-      setDuration(audio.duration);
-      console.log('Audio duration loaded:', audio.duration);
+      setDuration(audio.duration); // audio.duration is always seconds (float)
+      console.log('Audio duration loaded from file:', audio.duration); // debug line
     };
     const endedHandler = () => {
       setIsPlaying(false);
@@ -183,7 +183,7 @@ export default function AudioPlayerPage() {
                   <ProgressBar
                     value={currentTime}
                     min={0}
-                    max={duration || 165}
+                    max={duration && !isNaN(duration) && duration > 0 ? duration : 1}
                     showThumb={true}
                     progressColor="bg-[#d5a9a8]"
                     trackColor="bg-[#f5ecec]"
@@ -192,7 +192,7 @@ export default function AudioPlayerPage() {
                   <input
                     type="range"
                     min="0"
-                    max={duration || 165}
+                    max={duration && !isNaN(duration) && duration > 0 ? duration : 1}
                     value={currentTime}
                     onChange={handleTimeUpdate}
                     className="absolute top-0 left-0 w-full h-5 opacity-0 cursor-pointer"
@@ -200,7 +200,9 @@ export default function AudioPlayerPage() {
                     aria-label="Seek audio"
                   />
                 </div>
-                <span className="text-sm">{formatTime(duration)}</span>
+                <span className="text-sm">
+                  {duration && !isNaN(duration) ? formatTime(duration) : "0:00"}
+                </span>
                 <Button size="icon" variant="ghost" className="text-[#d5a9a8]">
                   <Volume2 className="h-4 w-4" />
                 </Button>
